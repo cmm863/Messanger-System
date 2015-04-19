@@ -1,1 +1,18 @@
-//Im just making sure i know how to use git
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>  /* define socket */
+#include <netinet/in.h>  /* define internet socket */
+#include <netdb.h>       /* define internet socket */
+
+
+int main()
+{
+
+
+
+
+  return 0;
+}

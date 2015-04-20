@@ -9,7 +9,7 @@
 #include <netdb.h>       /* define internet socket */
 using namespace std;
 
-#define SERVER_PORT 9999        /* define a server port number */
+#define SERVER_PORT 8333        /* define a server port number */
 #define MAX_CLIENT 10
 
 int main()

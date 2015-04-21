@@ -1,5 +1,5 @@
 #include <iostream>
-//#include <mutex>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -21,6 +21,8 @@ int main()
   sockaddr_in client_addr = { AF_INET }; 
   unsigned int client_len = sizeof(client_addr);
   int counter;
+  string test;
+  
   //mutex m;
   char buf[512];
   
@@ -57,10 +59,10 @@ int main()
        << endl;
        
   
-  while((k=read(ns, buf, sizeof(buf))) != 0)
+  while((k=read(ns,  buf, sizeof(buf))) != 0)
   {
     printf("SERVER RECEIVED: %s\n", buf);
-    write(ns, buf, k);
+    write(ns, buf , k);
   }  
   close(ns);
   close(sd);

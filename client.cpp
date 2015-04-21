@@ -52,8 +52,13 @@ int main(int argc, char* argv[]) {
 
   while(getline(cin, test)!=NULL&&test!="/exit"&&test!="/quit"&&test!="/part")
   {
-    write(sd, const_cast<char*>(test.c_str()), sizeof(test));
-    read(sd, const_cast<char*>(test.c_str()), sizeof(test));
+    for(int i=0; i<test.length(); i++)
+    {
+      buf[i]=test[i];
+    }
+    write(sd, buf , sizeof(buf));
+    read(sd, buf , sizeof(buf));
+    printf("SERVER ECHOED: %s\n", buf);
     cout << "SERVER ECHOED: " << test << endl;
   }
   

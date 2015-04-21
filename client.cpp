@@ -4,19 +4,24 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 #include <sys/socket.h>  /* define socket */
 #include <netinet/in.h>  /* define internet socket */
 #include <netdb.h>       /* define internet socket */
 using namespace std;
 #define SERVER_PORT 8333     /* define a server port number */
 
+void sig_hand(int sig);
+
 int main(int argc, char* argv[]) {
   int sd;
   struct sockaddr_in server_addr = { AF_INET, htons(SERVER_PORT)};
   string test;
-  char* buf;
+  char buf[512];
   struct hostent *hp;
-
+  
+  signal(SIGINT, sig_hand);
+  
   if(argc != 2) {
     cout << "Usage: " << argv[0] << " hostname" << endl;
     exit(1);
@@ -43,13 +48,22 @@ int main(int argc, char* argv[]) {
 
   cout << "connect() successful! Will send a message to server." << endl;
   cout << "Input a string: ";
-  cin >> test;
+  //cin >> test;
 
-  write(sd, const_cast<char*>(test.c_str()), sizeof(test));
-  read(sd, const_cast<char*>(test.c_str()), sizeof(test));
-  cout << "SERVER ECHOED: " << test << endl;
-
+  while(getline(cin, test)!=NULL&&test!="/exit"&&test!="/quit"&&test!="/part")
+  {
+    write(sd, const_cast<char*>(test.c_str()), sizeof(test));
+    read(sd, const_cast<char*>(test.c_str()), sizeof(test));
+    cout << "SERVER ECHOED: " << test << endl;
+  }
+  
   close(sd);
 
   return 0;
+}
+
+void sig_hand(int sig)
+{
+  cout << "\nIf you wish to exit, please type /exit /quit/ or /part" << endl;
+  return;
 }

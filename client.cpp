@@ -52,14 +52,13 @@ int main(int argc, char* argv[]) {
 
   while(getline(cin, test)!=NULL&&test!="/exit"&&test!="/quit"&&test!="/part")
   {
-    for(int i=0; i<test.length(); i++)
+    for(int i=0; i<test.length()+1; i++)
     {
       buf[i]=test[i];
     }
     write(sd, buf , sizeof(buf));
     read(sd, buf , sizeof(buf));
     printf("SERVER ECHOED: %s\n", buf);
-    cout << "SERVER ECHOED: " << test << endl;
   }
   
   close(sd);

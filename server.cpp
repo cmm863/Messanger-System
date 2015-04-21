@@ -68,9 +68,5 @@ int main()
   close(sd);
   unlink((const char*)&server_addr.sin_addr);
   
-  
-  
-  
-
   return 0;
 }

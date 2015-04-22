@@ -24,18 +24,19 @@ static int test_array[MAX_CLIENT];
 int main()
 {
   int ns, sd, k;
-  int FDarray[MAX_CLIENT];   /* allocate file descriptors 
-                                for number of clients*/
+  int FDarray[MAX_CLIENT];   // allocate file descriptors 
   sockaddr_in server_addr = { AF_INET, htons( SERVER_PORT ) };
   sockaddr_in client_addr = { AF_INET }; 
   unsigned int client_len = sizeof(client_addr);
-  int counter;
 
   pthread_t threadA[3];
   
   for(int i = 0; i < MAX_CLIENT; i++) {
     test_array[i] = -1;
   }
+
+  string test;
+  pthread_t  myThread;
   
   //Create stream socket
   if((sd=socket(AF_INET, SOCK_STREAM, 0)) == -1)
@@ -59,7 +60,6 @@ int main()
   }
   int noThread = 0;
   cout << "SERVER is listening for clients to establish a connection " << endl;
-
   struct arg_struct args;
   while(noThread < MAX_CLIENT) {
     cout << "Listening" << endl;
@@ -80,6 +80,13 @@ int main()
       exit(1);
     }
     noThread++;
+  }
+  
+
+  if((ns=accept(sd, (sockaddr*)&client_addr, &client_len)) == -1)
+  {
+    perror("server: accept failed");
+    exit(1);
   }
   
   cout << "accept() successful.. a client has connected! waiting for a message" 

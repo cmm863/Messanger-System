@@ -73,10 +73,8 @@ int main(int argc, char* argv[]) {
     {
       buf[i]=test[i];
     }
-    write(sd, buf , sizeof(buf));
     cout << "-w-" << endl;
-    read(sd, buf , sizeof(buf));
-    printf("SERVER ECHOED: %s\n", buf);
+    write(client.sd, buf , sizeof(buf));
     cout << "Input as string: ";
     write(client.sd, buf , sizeof(buf));
   }
@@ -100,12 +98,7 @@ void *reader(void *passed_client)
   
   while(read(client->sd, buf , sizeof(buf)) > 0)
   {
-    if(buf==client->name);
-    else
-    {
-      read(client->sd, buf , sizeof(buf));
-      printf("%s\n", buf);
-    }
+    printf("%s\n", buf);
   }
   pthread_exit(passed_client);
 }

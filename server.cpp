@@ -100,13 +100,13 @@ int main()
 
 void *task(void *arguments) {
   struct arg_struct *args = (struct arg_struct *)arguments;
-  int k;
+  int k, ns_l = args->ns;
   char buf[512];
-  while((k=read(args->ns, buf, sizeof(buf))) != 0) {
-    cout << args->ns << endl;
+  while((k=read(ns_l, buf, sizeof(buf))) != 0) {
+    cout << ns_l << endl;
     printf("SERVER RECEIVED: %s\n", buf);
     for(int i = 0; i < MAX_CLIENT; i++) {
-      if(test_array[i] != -1) {
+      if(test_array[i] != -1 && test_array[i] != ns_l) {
         write(test_array[i], buf, sizeof(buf));
         cout << "Sent to: " << test_array[i] << endl;
       }

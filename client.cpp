@@ -68,14 +68,10 @@ int main(int argc, char* argv[]) {
   
   while(getline(cin, test)!=NULL&&test!="/exit"&&test!="/quit"&&test!="/part")
   {
-    cout << "-m-" << endl;
     for(int i=0; i<test.length()+1; i++)
     {
       buf[i]=test[i];
     }
-    cout << "-w-" << endl;
-    write(client.sd, buf , sizeof(buf));
-    cout << "Input as string: ";
     write(client.sd, buf , sizeof(buf));
   }
   

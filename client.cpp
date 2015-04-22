@@ -9,7 +9,7 @@
 #include <netinet/in.h>  /* define internet socket */
 #include <netdb.h>       /* define internet socket */
 using namespace std;
-#define SERVER_PORT 8333     /* define a server port number */
+#define SERVER_PORT 8443     /* define a server port number */
 
 void sig_hand(int sig);
 
@@ -52,13 +52,16 @@ int main(int argc, char* argv[]) {
 
   while(getline(cin, test)!=NULL&&test!="/exit"&&test!="/quit"&&test!="/part")
   {
+    cout << "-m-" << endl;
     for(int i=0; i<test.length()+1; i++)
     {
       buf[i]=test[i];
     }
     write(sd, buf , sizeof(buf));
+    cout << "-w-" << endl;
     read(sd, buf , sizeof(buf));
     printf("SERVER ECHOED: %s\n", buf);
+    cout << "Input as string: ";
   }
   
   close(sd);

@@ -12,17 +12,19 @@ using namespace std;
 #define SERVER_PORT 8333        /* define a server port number */
 #define MAX_CLIENT 10
 
+void *handle_client( void * );
+
 int main()
 {
   int ns, sd, k;
-  int FDarray[MAX_CLIENT];   /* allocate file descriptors 
-                                for number of clients*/
+  int FDarray[MAX_CLIENT];   // allocate file descriptors 
+  pthread_t tid[MAX_CLIENT]   // for number of clients
   sockaddr_in server_addr = { AF_INET, htons( SERVER_PORT ) };
   sockaddr_in client_addr = { AF_INET }; 
   unsigned int client_len = sizeof(client_addr);
-  int counter;
+  int counter = 0;
   string test;
-  
+  pthread_t  myThread;
   //mutex m;
   char buf[512];
   
@@ -49,6 +51,14 @@ int main()
   
   cout << "SERVER is listening for clients to establish a connection " << endl;
   
+  
+  /*while((ns=accept(sd, (sockaddr*)&client_addr, &client_len)) > 0)
+  {
+    FDarray[counter] = ns;
+    pthread_create(&tid[counter], NULL, handle_client,  ) 
+  }*/
+  
+  
   if((ns=accept(sd, (sockaddr*)&client_addr, &client_len)) == -1)
   {
     perror("server: accept failed");
@@ -69,4 +79,10 @@ int main()
   unlink((const char*)&server_addr.sin_addr);
   
   return 0;
+}
+
+void *handle_client( void * )
+{
+
+
 }

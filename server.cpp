@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/socket.h>  /* define socket */
 #include <netinet/in.h>  /* define internet socket */
@@ -10,10 +11,12 @@
 #include <pthread.h>
 using namespace std;
 
-#define SERVER_PORT 8443        /* define a server port number */
+#define SERVER_PORT 9999        /* define a server port number */
 #define MAX_CLIENT 10
 
 void *task(void *arguments);
+void timer_int(int sig);
+void Timer();
 
 struct arg_struct {
   int ns;
@@ -28,8 +31,9 @@ int main()
   sockaddr_in server_addr = { AF_INET, htons( SERVER_PORT ) };
   sockaddr_in client_addr = { AF_INET }; 
   unsigned int client_len = sizeof(client_addr);
-
+  pthread_t timer;
   pthread_t threadA[3];
+  signal(SIGINT, timer_int);
   
   for(int i = 0; i < MAX_CLIENT; i++) {
     test_array[i] = -1;
@@ -116,3 +120,28 @@ void *task(void *arguments) {
 
   return NULL;
 }
+
+void timer_int(int sig)
+{
+  Timer();
+  return;
+}
+
+void Timer()
+{
+  char shutdown[]="WARNING: SERVER WILL SHUT DOWN IN TEN SECONDS\0";
+  for(int i = 0; i < MAX_CLIENT; i++) {
+    if(test_array[i] != -1) {
+      write(test_array[i], shutdown, sizeof(shutdown));
+    }
+  }
+  for(int i = 0; i < MAX_CLIENT; i++) {
+    if(test_array[i] != -1) {
+      close(test_array[i]);
+    }
+  }
+                  
+  exit(1);
+}
+
+    

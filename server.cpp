@@ -24,6 +24,7 @@ struct arg_struct {
 
 static int connFd;
 static int test_array[MAX_CLIENT];
+pthread_mutex_t m;
 int main()
 {
   int ns, sd, k;
@@ -34,6 +35,7 @@ int main()
   pthread_t timer;
   pthread_t threadA[3];
   signal(SIGINT, timer_int);
+  
   
   for(int i = 0; i < MAX_CLIENT; i++) {
     test_array[i] = -1;
@@ -70,8 +72,9 @@ int main()
     struct arg_struct args;
     connFd = accept(sd, (sockaddr*)&client_addr, &client_len);
     args.ns = connFd;
+    pthread_mutex_lock(&m);
     test_array[noThread] = connFd;
-
+    pthread_mutex_unlock(&m);
     if(connFd == -1) {
       cerr << "Cannot accept connection." << endl;
       exit(1);
@@ -106,6 +109,7 @@ void *task(void *arguments) {
   struct arg_struct *args = (struct arg_struct *)arguments;
   int k, ns_l = args->ns;
   char buf[512];
+  pthread_mutex_lock(&m);
   while((k=read(ns_l, buf, sizeof(buf))) != 0) {
     cout << ns_l << endl;
     printf("SERVER RECEIVED: %s\n", buf);
@@ -116,6 +120,7 @@ void *task(void *arguments) {
       }
     }
   }
+  pthread_mutex_unlock(&m);
   close(args->ns);
 
   return NULL;

@@ -16,7 +16,7 @@ using namespace std;
 
 void *task(void *arguments);
 void timer_int(int sig);
-void Timer();
+void *Timer(void *arguments);
 
 struct arg_struct {
   int ns;
@@ -32,7 +32,6 @@ int main()
   sockaddr_in server_addr = { AF_INET, htons( SERVER_PORT ) };
   sockaddr_in client_addr = { AF_INET }; 
   unsigned int client_len = sizeof(client_addr);
-  pthread_t timer;
   pthread_t threadA[3];
   signal(SIGINT, timer_int);
   
@@ -109,18 +108,20 @@ void *task(void *arguments) {
   struct arg_struct *args = (struct arg_struct *)arguments;
   int k, ns_l = args->ns;
   char buf[512];
-  pthread_mutex_lock(&m);
+  
   while((k=read(ns_l, buf, sizeof(buf))) != 0) {
     cout << ns_l << endl;
     printf("SERVER RECEIVED: %s\n", buf);
+    pthread_mutex_lock(&m);
     for(int i = 0; i < MAX_CLIENT; i++) {
       if(test_array[i] != -1 && test_array[i] != ns_l) {
         write(test_array[i], buf, sizeof(buf));
         cout << "Sent to: " << test_array[i] << endl;
       }
     }
+    pthread_mutex_unlock(&m);
   }
-  pthread_mutex_unlock(&m);
+  
   close(args->ns);
 
   return NULL;
@@ -128,11 +129,13 @@ void *task(void *arguments) {
 
 void timer_int(int sig)
 {
-  Timer();
+  pthread_t mytimer;
+  pthread_create(&mytimer, NULL,  Timer, NULL);
+  Timer(NULL);
   return;
 }
 
-void Timer()
+void *Timer(void *arguments)
 {
   char shutdown[]="WARNING: SERVER WILL SHUT DOWN IN TEN SECONDS\0";
   for(int i = 0; i < MAX_CLIENT; i++) {
@@ -140,6 +143,7 @@ void Timer()
       write(test_array[i], shutdown, sizeof(shutdown));
     }
   }
+  sleep(10);
   for(int i = 0; i < MAX_CLIENT; i++) {
     if(test_array[i] != -1) {
       close(test_array[i]);

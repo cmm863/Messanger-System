@@ -8,9 +8,11 @@
 #include <netinet/in.h>  /* define internet socket */
 #include <netdb.h>       /* define internet socket */
 #include <pthread.h>
+#include <cstring>
+#include <map>
 using namespace std;
 
-#define SERVER_PORT 8443        /* define a server port number */
+#define SERVER_PORT 8243        /* define a server port number */
 #define MAX_CLIENT 10
 
 void *task(void *arguments);
@@ -18,6 +20,8 @@ void *task(void *arguments);
 struct arg_struct {
   int ns;
 };
+
+static map<int, string> name_map;
 
 static int connFd;
 static int test_array[MAX_CLIENT];
@@ -29,7 +33,7 @@ int main()
   sockaddr_in client_addr = { AF_INET }; 
   unsigned int client_len = sizeof(client_addr);
 
-  pthread_t threadA[3];
+  pthread_t threadA[MAX_CLIENT];
   
   for(int i = 0; i < MAX_CLIENT; i++) {
     test_array[i] = -1;
@@ -104,15 +108,59 @@ void *task(void *arguments) {
   char buf[512];
   while((k=read(ns_l, buf, sizeof(buf))) != 0) {
     cout << ns_l << endl;
+    if(buf[0] == '/') {
+      if(strncmp(buf, "/part", 5) == 0
+        || strncmp(buf, "/quit", 5) == 0
+        || strncmp(buf, "/exit", 5) == 0) 
+      {
+        cout << "Quit recieved" << endl;
+        strcpy(buf, name_map[ns_l].c_str());
+        strcat(buf, " has quit.");
+        for(int i = 0; i < MAX_CLIENT; i++) {
+          if(test_array[i] != -1 && test_array[i] != ns_l) {
+            write(test_array[i], buf, sizeof(buf));
+          }
+        }
+        break;
+      } else if (strncmp(buf, "/nick ", 6) == 0) {
+        string name = "";
+        for(int i = 6; i < 54; i++) {
+          if(buf[i] != '\0'
+            || buf[i] != '\n') {
+            name += buf[i];
+          } else {
+            break;
+          }
+        }
+        name_map.insert(std::pair<int, string>(ns_l, name));
+        strcpy(buf, name_map[ns_l].c_str());
+        strcat(buf, " has joined.");
+        for(int i = 0; i < MAX_CLIENT; i++) {
+          if(test_array[i] != -1 && test_array[i] != ns_l) {
+            write(test_array[i], buf, sizeof(buf));
+          }
+        }
+        continue;
+      }
+    }
     printf("SERVER RECEIVED: %s\n", buf);
     for(int i = 0; i < MAX_CLIENT; i++) {
       if(test_array[i] != -1 && test_array[i] != ns_l) {
-        write(test_array[i], buf, sizeof(buf));
+        char message[512];
+        strcpy(message, name_map[ns_l].c_str());
+        strcat(message, ": ");
+        strcat(message, buf);
+        for(int j = strlen(message) - 1; j > 0; j--) {
+          if(message[j] == '\n') {
+            message[j] = '\0';
+          }
+        }
+        write(test_array[i], message, sizeof(message));
         cout << "Sent to: " << test_array[i] << endl;
       }
     }
   }
-  close(args->ns);
-
+  close(ns_l);
+  cout << "User thread ended." << endl;
   return NULL;
 }

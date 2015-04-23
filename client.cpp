@@ -9,7 +9,7 @@
 #include <netinet/in.h>  /* define internet socket */
 #include <netdb.h>       /* define internet socket */
 using namespace std;
-#define SERVER_PORT 8443     /* define a server port number */
+#define SERVER_PORT 8243     /* define a server port number */
 
 void sig_hand(int sig);
 void *reader(void *);
@@ -56,9 +56,10 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  for(int i=0; i<client.name.length()+1; i++)
+  strcpy(buf, "/nick ");
+  for(int i=6; i<client.name.length()+7; i++)
   {
-    buf[i]=client.name[i];
+    buf[i]=client.name[i-6];
   }
   write(client.sd, buf, sizeof(buf));
   read(client.sd, buf, sizeof(buf));
@@ -66,17 +67,21 @@ int main(int argc, char* argv[]) {
   
   pthread_create(&myclient, NULL, reader, &client);
   
-  while(getline(cin, test)!=NULL&&test!="/exit"&&test!="/quit"&&test!="/part")
+  while(getline(cin, test)!=NULL)
   {
     for(int i=0; i<test.length()+1; i++)
     {
       buf[i]=test[i];
     }
     write(client.sd, buf , sizeof(buf));
+    if(test == "/exit"
+      || test == "/quit"
+      || test == "/part") {
+      break;
+    }
   }
   
-  pthread_join(myclient, NULL);
-  close(sd);
+  close(client.sd);
 
   return 0;
 }

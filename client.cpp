@@ -9,7 +9,7 @@
 #include <netinet/in.h>  /* define internet socket */
 #include <netdb.h>       /* define internet socket */
 using namespace std;
-#define SERVER_PORT 8243     /* define a server port number */
+#define SERVER_PORT 9339     /* define a server port number */
 
 void sig_hand(int sig);
 void *reader(void *);
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
       break;
     }
   }
-  
+
   close(client.sd);
 
   return 0;

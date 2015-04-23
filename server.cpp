@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/socket.h>  /* define socket */
 #include <netinet/in.h>  /* define internet socket */
@@ -12,10 +13,12 @@
 #include <map>
 using namespace std;
 
-#define SERVER_PORT 8243        /* define a server port number */
+#define SERVER_PORT 9339        /* define a server port number */
 #define MAX_CLIENT 10
 
 void *task(void *arguments);
+void timer_int(int sig);
+void *Timer(void *arguments);
 
 struct arg_struct {
   int ns;
@@ -25,6 +28,7 @@ static map<int, string> name_map;
 
 static int connFd;
 static int test_array[MAX_CLIENT];
+pthread_mutex_t m;
 int main()
 {
   int ns, sd, k;
@@ -34,6 +38,8 @@ int main()
   unsigned int client_len = sizeof(client_addr);
 
   pthread_t threadA[MAX_CLIENT];
+  signal(SIGINT, timer_int);
+  
   
   for(int i = 0; i < MAX_CLIENT; i++) {
     test_array[i] = -1;
@@ -70,8 +76,9 @@ int main()
     struct arg_struct args;
     connFd = accept(sd, (sockaddr*)&client_addr, &client_len);
     args.ns = connFd;
+    pthread_mutex_lock(&m);
     test_array[noThread] = connFd;
-
+    pthread_mutex_unlock(&m);
     if(connFd == -1) {
       cerr << "Cannot accept connection." << endl;
       exit(1);
@@ -106,6 +113,7 @@ void *task(void *arguments) {
   struct arg_struct *args = (struct arg_struct *)arguments;
   int k, ns_l = args->ns;
   char buf[512];
+  
   while((k=read(ns_l, buf, sizeof(buf))) != 0) {
     cout << ns_l << endl;
     if(buf[0] == '/') {
@@ -144,6 +152,7 @@ void *task(void *arguments) {
       }
     }
     printf("SERVER RECEIVED: %s\n", buf);
+    pthread_mutex_lock(&m);
     for(int i = 0; i < MAX_CLIENT; i++) {
       if(test_array[i] != -1 && test_array[i] != ns_l) {
         char message[512];
@@ -159,8 +168,38 @@ void *task(void *arguments) {
         cout << "Sent to: " << test_array[i] << endl;
       }
     }
+    pthread_mutex_unlock(&m);
   }
   close(ns_l);
   cout << "User thread ended." << endl;
+
   return NULL;
 }
+
+void timer_int(int sig)
+{
+  pthread_t mytimer;
+  pthread_create(&mytimer, NULL,  Timer, NULL);
+  Timer(NULL);
+  return;
+}
+
+void *Timer(void *arguments)
+{
+  char shutdown[]="WARNING: SERVER WILL SHUT DOWN IN TEN SECONDS\0";
+  for(int i = 0; i < MAX_CLIENT; i++) {
+    if(test_array[i] != -1) {
+      write(test_array[i], shutdown, sizeof(shutdown));
+    }
+  }
+  sleep(10);
+  for(int i = 0; i < MAX_CLIENT; i++) {
+    if(test_array[i] != -1) {
+      close(test_array[i]);
+    }
+  }
+                  
+  exit(1);
+}
+
+    
